@@ -1,6 +1,8 @@
 # TLV320DAC3100 Library for Raspberry Pi Pico SDK
 
-This is a native Raspberry Pi Pico SDK port of the Adafruit TLV320DAC3100 library, removing all Arduino and external dependencies.
+This is a native Raspberry Pi Pico SDK port of the Adafruit TLV320DAC3100 library, removing all Arduino and external dependencies. 
+
+DISCLAMER: This was re-written primarily by Claude however has been reviewed and maintained by humans
 
 ## Features
 
