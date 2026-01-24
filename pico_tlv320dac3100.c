@@ -966,12 +966,26 @@ bool tlv320_configure_beep_tone(tlv320dac3100_t *dev, float frequency, uint32_t 
                                  uint32_t sample_rate) {
     if (frequency >= (sample_rate / 4.0f)) return false;
     
+    // Calculate the phase increment angle for the DDS oscillator
+    // Per TLV320DAC3100 datasheet Section 7.3.8.1:
+    // sin(x) and cos(x) are signed 16-bit two's complement values
+    // where x = 2*pi*f/Fs (the angular frequency normalized to sample rate)
     float angle = 2.0f * M_PI * frequency / sample_rate;
-    uint16_t sin_val = (uint16_t)(sinf(angle) * 32767.0f);
-    uint16_t cos_val = (uint16_t)(cosf(angle) * 32767.0f);
+    
+    // Convert to signed 16-bit values (Q15 format: -1.0 to +0.99997)
+    // The values are interpreted as signed two's complement in the codec
+    int16_t sin_signed = (int16_t)(sinf(angle) * 32767.0f);
+    int16_t cos_signed = (int16_t)(cosf(angle) * 32767.0f);
+    
+    // Cast to uint16_t for register write (preserves bit pattern)
+    uint16_t sin_val = (uint16_t)sin_signed;
+    uint16_t cos_val = (uint16_t)cos_signed;
     
     uint32_t length = (duration_ms * sample_rate) / 1000;
     if (length > 0x00FFFFFF) length = 0x00FFFFFF;
+    
+    // Length of 0 means infinite beep, so ensure we have a valid length
+    if (length == 0) length = 1;
     
     return (tlv320_set_beep_sincos(dev, sin_val, cos_val) && tlv320_set_beep_length(dev, length));
 }
